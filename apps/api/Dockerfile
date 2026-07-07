@@ -2,6 +2,8 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl libc6-compat
+
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY apps/api/prisma ./apps/api/prisma/
