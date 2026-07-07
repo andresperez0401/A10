@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("MEMBER")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  issues Issue[]
+  todos  Todo[]
+  kpis   KPI[]
+}
+
+model Meeting {
+  id          String   @id @default(cuid())
+  weekNumber  Int
+  meetingDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  issues Issue[]
+}
+
+model Issue {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  priority    String
+  status      String   @default("UNDISCUSSED")
+  dueDate     DateTime
+  ownerId     String
+  meetingId   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  owner   User    @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Restrict)
+  todos   Todo[]
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  title     String
+  issueId   String?
+  ownerId   String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue Issue? @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  owner User   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+}
+
+model KPI {
+  id         String      @id @default(cuid())
+  name       String
+  nature     String
+  operator   String
+  annualGoal Decimal
+  unit       String
+  ownerId    String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  owner  User       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  values KPIValue[]
+}
+
+model KPIValue {
+  id         String   @id @default(cuid())
+  kpiId      String
+  weekNumber Int
+  year       Int
+  value      Decimal
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  kpi KPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@unique([kpiId, weekNumber, year])
+}

@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: "file:./prisma/dev.db"
+      JWT_SECRET: "dev-secret-change-me"
+      FRONTEND_ORIGIN: "http://localhost:5173"
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
