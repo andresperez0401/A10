@@ -5,19 +5,14 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY apps/api/prisma ./apps/api/prisma/
-COPY apps/web/package*.json ./apps/web/
+COPY prisma ./prisma/
 
 RUN npm install
 
-COPY apps/api ./apps/api
-
-WORKDIR /app/apps/api
+COPY . .
 
 RUN npx prisma generate
 RUN npm run build
-
 
 ENV JWT_SECRET="dev-secret-change-me"
 
