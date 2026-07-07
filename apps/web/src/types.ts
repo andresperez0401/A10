@@ -7,7 +7,9 @@ export type User = {
 };
 
 export type KPIValue = {
+  id?: string;
   weekNumber: number;
+  year?: number;
   value: number;
 };
 
@@ -20,6 +22,21 @@ export type KPI = {
   annualGoal: number;
   owner: User;
   values: KPIValue[];
+};
+
+export type KpiFormInput = {
+  name: string;
+  unit: string;
+  nature: KPI['nature'];
+  operator: KPI['operator'];
+  annualGoal: number;
+  ownerId: string;
+};
+
+export type UpsertKpiValueInput = {
+  weekNumber: number;
+  year: number;
+  value: number;
 };
 
 export type Issue = {

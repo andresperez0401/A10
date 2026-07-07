@@ -1,4 +1,4 @@
-import type { CreateIssueInput, Issue, IssueFilters, LoginResponse } from './types';
+import type { CreateIssueInput, Issue, IssueFilters, KPI, KpiFormInput, LoginResponse, UpsertKpiValueInput, User } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
@@ -53,4 +53,96 @@ export async function createIssue(token: string, input: CreateIssueInput): Promi
 
   const payload = (await response.json()) as { data: Issue };
   return payload.data;
+}
+
+export async function getUsers(token: string): Promise<User[]> {
+  const response = await fetch(`${API_URL}/api/users`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudieron cargar los usuarios');
+  }
+
+  const payload = (await response.json()) as { data: User[] };
+  return payload.data;
+}
+
+export async function getKpis(token: string): Promise<KPI[]> {
+  const response = await fetch(`${API_URL}/api/kpis`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudieron cargar los KPIs');
+  }
+
+  const payload = (await response.json()) as { data: KPI[] };
+  return payload.data;
+}
+
+export async function createKpi(token: string, input: KpiFormInput): Promise<KPI> {
+  const response = await fetch(`${API_URL}/api/kpis`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? 'No se pudo crear el KPI');
+  }
+
+  const payload = (await response.json()) as { data: KPI };
+  return payload.data;
+}
+
+export async function updateKpi(token: string, id: string, input: KpiFormInput): Promise<KPI> {
+  const response = await fetch(`${API_URL}/api/kpis/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? 'No se pudo actualizar el KPI');
+  }
+
+  const payload = (await response.json()) as { data: KPI };
+  return payload.data;
+}
+
+export async function deleteKpi(token: string, id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/kpis/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? 'No se pudo eliminar el KPI');
+  }
+}
+
+export async function upsertKpiValue(token: string, id: string, input: UpsertKpiValueInput): Promise<void> {
+  const response = await fetch(`${API_URL}/api/kpis/${id}/values`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? 'No se pudo guardar el valor del KPI');
+  }
 }

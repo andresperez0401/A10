@@ -243,12 +243,12 @@ Orden aplicado:
 La web tiene dos bloques:
 
 - Parte A: login real contra la API, tabla de issues desde PostgreSQL, filtros y creacion simple de issues.
-- Parte B: `KPIScorecard` con mock data local para demostrar las reglas de KPI.
+- Parte B: `KPIScorecard` conectado a PostgreSQL para listar, crear, editar, eliminar KPIs y guardar valores semanales.
 
-El frontend renderiza:
+El frontend renderiza el scorecard con datos cargados desde la API:
 
 ```tsx
-<KPIScorecard kpis={kpis} selectedWeek={selectedWeek} currentUser={currentUser} />
+<KPIScorecard kpis={kpis} users={users} selectedWeek={selectedWeek} currentUser={user} />
 ```
 
 La tabla muestra:
@@ -273,7 +273,8 @@ Reglas implementadas:
 - `greater_equal`: cumple si `value >= annualGoal / 52`.
 - `less_equal`: cumple si `value <= annualGoal / 52`.
 - Si falta dato de la semana actual, aparece `+ Actualizar`.
-- El modal guarda el valor solo en estado local para la demo.
+- El modal guarda el valor en `kpi_values` con `upsert` por KPI, semana y anio.
+- `Nuevo KPI`, `Editar` y `Eliminar` persisten cambios en la tabla `KPI`.
 
 ## Ejercicio C: SQL PostgreSQL
 

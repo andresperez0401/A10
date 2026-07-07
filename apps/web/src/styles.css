@@ -248,6 +248,8 @@ button:disabled {
 .session-row,
 .week-controls,
 .panel-actions,
+.scorecard-actions,
+.row-actions,
 .modal-actions {
   align-items: center;
   display: flex;
@@ -276,7 +278,9 @@ button:disabled {
 }
 
 .week-controls,
-.panel-actions {
+.panel-actions,
+.scorecard-actions,
+.row-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -410,7 +414,7 @@ textarea:focus {
 
 table {
   border-collapse: collapse;
-  min-width: 1020px;
+  min-width: 1180px;
   width: 100%;
 }
 
@@ -524,6 +528,29 @@ td small {
   color: #a8481f;
 }
 
+.danger-link {
+  color: #b94a3a;
+}
+
+.danger-link:hover:not(:disabled) {
+  color: #8e3327;
+}
+
+.value-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-weight: 900;
+  min-height: auto;
+  padding: 0;
+}
+
+.value-button:hover:not(:disabled) {
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+}
+
 .delay-badge {
   color: #b94a3a;
   font-weight: 900;
@@ -561,6 +588,10 @@ td small {
 
 .issue-modal {
   max-width: 540px;
+}
+
+.kpi-modal {
+  max-width: 620px;
 }
 
 .modal h3 {
@@ -630,7 +661,9 @@ td small {
   }
 
   .week-controls,
-  .panel-actions {
+  .panel-actions,
+  .scorecard-actions,
+  .row-actions {
     justify-content: flex-start;
   }
 }

@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import authRoutes from './routes/auth';
 import issuesRoutes from './routes/issues';
+import kpisRoutes from './routes/kpis';
+import usersRoutes from './routes/users';
 
 dotenv.config();
 
@@ -42,6 +44,8 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/issues', issuesRoutes);
+app.use('/api/kpis', kpisRoutes);
+app.use('/api/users', usersRoutes);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`A10 API running on port ${port}`);

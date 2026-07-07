@@ -12,8 +12,9 @@ async function main() {
   await prisma.user.deleteMany();
 
   const passwordHash = await bcrypt.hash('demo123', 10);
+  const basePasswordHash = await bcrypt.hash('12345678', 10);
 
-  const [ana, bruno, carla] = await Promise.all([
+  const [ana, bruno, carla, santiago] = await Promise.all([
     prisma.user.create({
       data: { name: 'Ana Lopez', email: 'ana@demo.com', passwordHash, role: 'ADMIN' }
     }),
@@ -22,6 +23,9 @@ async function main() {
     }),
     prisma.user.create({
       data: { name: 'Carla Ruiz', email: 'carla@demo.com', passwordHash, role: 'MEMBER' }
+    }),
+    prisma.user.create({
+      data: { name: 'Santiago Londono', email: 'slondono@anagram-us.com', passwordHash: basePasswordHash, role: 'ADMIN' }
     })
   ]);
 

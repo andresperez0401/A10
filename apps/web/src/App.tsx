@@ -1,18 +1,20 @@
 import { FormEvent, useState } from 'react';
-import { createIssue, getIssues, login } from './api';
+import { createIssue, createKpi, deleteKpi, getIssues, getKpis, getUsers, login, updateKpi, upsertKpiValue } from './api';
 import { KPIScorecard } from './components/KPIScorecard';
-import { currentUser, mockKpis } from './data/mockKpis';
-import type { CreateIssueInput, Issue, IssueFilters, User } from './types';
+import type { CreateIssueInput, Issue, IssueFilters, KPI, KpiFormInput, UpsertKpiValueInput, User } from './types';
 
 const currentCalendarWeek = 27;
+const currentYear = new Date().getFullYear();
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState(currentCalendarWeek);
-  const [email, setEmail] = useState('ana@demo.com');
-  const [password, setPassword] = useState('demo123');
+  const [email, setEmail] = useState('slondono@anagram-us.com');
+  const [password, setPassword] = useState('12345678');
   const [token, setToken] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [kpis, setKpis] = useState<KPI[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [filters, setFilters] = useState<IssueFilters>({});
   const [showIssueModal, setShowIssueModal] = useState(false);
   const [newIssue, setNewIssue] = useState<CreateIssueInput>({
@@ -48,6 +50,23 @@ export default function App() {
     }
   }
 
+  async function loadKpis(authToken = token) {
+    if (!authToken) return;
+
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const data = await getKpis(authToken);
+      setKpis(data);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -56,10 +75,13 @@ export default function App() {
 
     try {
       const session = await login(email, password);
+      const [issuesData, kpisData, usersData] = await Promise.all([getIssues(session.token, filters), getKpis(session.token), getUsers(session.token)]);
       setToken(session.token);
       setUser(session.user);
+      setIssues(issuesData);
+      setKpis(kpisData);
+      setUsers(usersData);
       setSuccessMessage('Sesion iniciada correctamente.');
-      await loadIssues(session.token, filters);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
     } finally {
@@ -92,6 +114,74 @@ export default function App() {
     }
   }
 
+  async function handleCreateKpi(input: KpiFormInput) {
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await createKpi(token, input);
+      await loadKpis(token);
+      setSuccessMessage('KPI creado correctamente.');
+      window.setTimeout(() => setSuccessMessage(''), 3500);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleUpdateKpi(id: string, input: KpiFormInput) {
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await updateKpi(token, id, input);
+      await loadKpis(token);
+      setSuccessMessage('KPI actualizado correctamente.');
+      window.setTimeout(() => setSuccessMessage(''), 3500);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteKpi(id: string) {
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await deleteKpi(token, id);
+      await loadKpis(token);
+      setSuccessMessage('KPI eliminado correctamente.');
+      window.setTimeout(() => setSuccessMessage(''), 3500);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSaveKpiValue(id: string, input: UpsertKpiValueInput) {
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await upsertKpiValue(token, id, input);
+      await loadKpis(token);
+      setSuccessMessage('Valor de KPI guardado correctamente.');
+      window.setTimeout(() => setSuccessMessage(''), 3500);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <nav className="navbar">
@@ -114,6 +204,8 @@ export default function App() {
                   setToken('');
                   setUser(null);
                   setIssues([]);
+                  setKpis([]);
+                  setUsers([]);
                   setSuccessMessage('');
                   setError('');
                 }}
@@ -164,6 +256,8 @@ export default function App() {
                   setToken('');
                   setUser(null);
                   setIssues([]);
+                  setKpis([]);
+                  setUsers([]);
                   setSuccessMessage('');
                   setError('');
                 }}
@@ -292,6 +386,7 @@ export default function App() {
         </section>
       )}
 
+      {token && user && (
       <section id="kpis">
         <div className="section-heading">
           <div>
@@ -306,8 +401,20 @@ export default function App() {
             </button>
           </div>
         </div>
-        <KPIScorecard kpis={mockKpis} selectedWeek={selectedWeek} currentUser={currentUser} />
+        <KPIScorecard
+          kpis={kpis}
+          users={users}
+          selectedWeek={selectedWeek}
+          selectedYear={currentYear}
+          currentUser={user}
+          loading={loading}
+          onCreateKpi={handleCreateKpi}
+          onUpdateKpi={handleUpdateKpi}
+          onDeleteKpi={handleDeleteKpi}
+          onSaveKpiValue={handleSaveKpiValue}
+        />
       </section>
+      )}
 
       {showIssueModal && (
         <div className="modal-backdrop" role="presentation">
