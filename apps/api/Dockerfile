@@ -20,7 +20,6 @@ RUN npm run build
 
 
 ENV JWT_SECRET="dev-secret-change-me"
-ENV PORT=4000
 
 EXPOSE 4000
 

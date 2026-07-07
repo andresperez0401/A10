@@ -70,10 +70,15 @@ Levantar web en otra terminal:
 npm run dev:web
 ```
 
-URLs:
+URLs en desarrollo local:
 
 - API: `http://localhost:4000`
 - Web: `http://localhost:5173`
+
+URLs con Docker:
+
+- API: `http://localhost:4000`
+- Web: `http://localhost:8080`
 
 En el navegador puedes probar el flujo completo:
 
@@ -108,11 +113,15 @@ JWT_SECRET=dev-secret-change-me
 FRONTEND_ORIGIN=https://TU-WEB.up.railway.app
 ```
 
+Si configuraste el servicio API en Railway con puerto fijo, usa `PORT=4000`. La API tambien funciona con el `PORT` dinamico de Railway porque escucha `process.env.PORT || 4000` en `0.0.0.0`.
+
 Variables del servicio Web:
 
 ```env
 VITE_API_URL=https://TU-API.up.railway.app
 ```
+
+Si configuraste el servicio Web en Railway con puerto fijo, usa `PORT=8080`. La web sirve Vite preview en `process.env.PORT` con fallback `8080`.
 
 Comando de arranque API:
 

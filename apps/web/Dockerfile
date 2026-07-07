@@ -12,6 +12,6 @@ COPY apps/web ./apps/web
 
 WORKDIR /app/apps/web
 
-EXPOSE 5173
+EXPOSE 8080
 
 CMD ["npm", "start"]
