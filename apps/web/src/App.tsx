@@ -1,10 +1,12 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { createIssue, createKpi, deleteKpi, getIssues, getKpis, getUsers, login, updateKpi, upsertKpiValue } from './api';
 import { KPIScorecard } from './components/KPIScorecard';
 import type { CreateIssueInput, Issue, IssueFilters, KPI, KpiFormInput, UpsertKpiValueInput, User } from './types';
 
 const currentCalendarWeek = 27;
 const currentYear = new Date().getFullYear();
+const sessionTokenKey = 'a10_token';
+const sessionUserKey = 'a10_user';
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState(currentCalendarWeek);
@@ -32,6 +34,54 @@ export default function App() {
   const delayedIssues = issues.filter((issue) => issue.days_delayed > 0).length;
   const completedTodos = issues.reduce((total, issue) => total + issue.todos_completed, 0);
   const totalTodos = issues.reduce((total, issue) => total + issue.todos_total, 0);
+
+  useEffect(() => {
+    const savedToken = window.localStorage.getItem(sessionTokenKey);
+    const savedUser = window.localStorage.getItem(sessionUserKey);
+
+    if (!savedToken || !savedUser) return;
+
+    try {
+      const parsedUser = JSON.parse(savedUser) as User;
+      setToken(savedToken);
+      setUser(parsedUser);
+      setLoading(true);
+      setError('');
+
+      Promise.all([getIssues(savedToken, filters), getKpis(savedToken), getUsers(savedToken)])
+        .then(([issuesData, kpisData, usersData]) => {
+          setIssues(issuesData);
+          setKpis(kpisData);
+          setUsers(usersData);
+        })
+        .catch((requestError) => {
+          window.localStorage.removeItem(sessionTokenKey);
+          window.localStorage.removeItem(sessionUserKey);
+          setToken('');
+          setUser(null);
+          setIssues([]);
+          setKpis([]);
+          setUsers([]);
+          setError(requestError instanceof Error ? requestError.message : 'Sesion expirada o invalida');
+        })
+        .finally(() => setLoading(false));
+    } catch {
+      window.localStorage.removeItem(sessionTokenKey);
+      window.localStorage.removeItem(sessionUserKey);
+    }
+  }, []);
+
+  function clearSession() {
+    window.localStorage.removeItem(sessionTokenKey);
+    window.localStorage.removeItem(sessionUserKey);
+    setToken('');
+    setUser(null);
+    setIssues([]);
+    setKpis([]);
+    setUsers([]);
+    setSuccessMessage('');
+    setError('');
+  }
 
   async function loadIssues(authToken = token, nextFilters = filters) {
     if (!authToken) return;
@@ -76,6 +126,8 @@ export default function App() {
     try {
       const session = await login(email, password);
       const [issuesData, kpisData, usersData] = await Promise.all([getIssues(session.token, filters), getKpis(session.token), getUsers(session.token)]);
+      window.localStorage.setItem(sessionTokenKey, session.token);
+      window.localStorage.setItem(sessionUserKey, JSON.stringify(session.user));
       setToken(session.token);
       setUser(session.user);
       setIssues(issuesData);
@@ -200,15 +252,7 @@ export default function App() {
             {user && (
               <button
                 className="nav-logout"
-                onClick={() => {
-                  setToken('');
-                  setUser(null);
-                  setIssues([]);
-                  setKpis([]);
-                  setUsers([]);
-                  setSuccessMessage('');
-                  setError('');
-                }}
+                onClick={clearSession}
               >
                 Cerrar sesion
               </button>
@@ -252,15 +296,7 @@ export default function App() {
             </span>
             <button
               className="secondary"
-              onClick={() => {
-                  setToken('');
-                  setUser(null);
-                  setIssues([]);
-                  setKpis([]);
-                  setUsers([]);
-                  setSuccessMessage('');
-                  setError('');
-                }}
+              onClick={clearSession}
             >
               Salir
             </button>
