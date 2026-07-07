@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
+COPY apps/api/prisma ./apps/api/prisma/
 COPY apps/web/package*.json ./apps/web/
 
 RUN npm install
@@ -12,8 +13,10 @@ COPY apps/api ./apps/api
 
 WORKDIR /app/apps/api
 
+RUN npx prisma generate
+RUN npm run build
 
-ENV DATABASE_URL="file:./prisma/dev.db"
+
 ENV JWT_SECRET="dev-secret-change-me"
 ENV PORT=4000
 

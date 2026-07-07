@@ -359,6 +359,16 @@ textarea:focus {
   padding: 0.8rem 1rem;
 }
 
+.success-message {
+  background: #e7f3ed;
+  border: 1px solid #c6dfd2;
+  border-radius: 12px;
+  color: #1f7a4d;
+  font-weight: 700;
+  margin: 18px 0 0;
+  padding: 0.8rem 1rem;
+}
+
 .stats-grid {
   display: grid;
   gap: 18px;

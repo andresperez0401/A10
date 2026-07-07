@@ -6,3 +6,6 @@ apps/api/prisma/dev.db
 apps/api/prisma/dev.db-journal
 npm-debug.log
 .env
+apps/api/.env
+apps/web/.env
+apps/web/.env.local

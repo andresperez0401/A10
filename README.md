@@ -4,7 +4,7 @@ Mini proyecto full-stack para cubrir los ejercicios A, B y C del caso tecnico A1
 
 Stack:
 
-- Backend: Node.js, Express, TypeScript, Prisma, SQLite y JWT.
+- Backend: Node.js, Express, TypeScript, Prisma, PostgreSQL y JWT.
 - Frontend: React, TypeScript y Vite.
 - Docker: `docker-compose` con API en `4000` y web en `5173`.
 - SQL PostgreSQL equivalente: `database.sql`.
@@ -36,16 +36,25 @@ Desde la raiz del monorepo:
 npm install
 ```
 
-Crear `.env` para la API:
+Crear `.env` para la API. Para esta demo remota se usa PostgreSQL en Railway:
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 ```
 
-Preparar SQLite y seed:
+`apps/api/.env`:
+
+```env
+DATABASE_URL="postgresql://postgres:password@host:port/railway"
+JWT_SECRET="dev-secret-change-me"
+PORT=4000
+FRONTEND_ORIGIN="http://localhost:5173"
+```
+
+Aplicar migraciones y seed en PostgreSQL:
 
 ```bash
-npm run db:migrate
+npm run db:deploy
 npm run db:seed
 ```
 
@@ -81,7 +90,54 @@ En el navegador puedes probar el flujo completo:
 docker compose up --build
 ```
 
-El contenedor de API ejecuta migraciones, seed y luego levanta Express.
+El contenedor de API ejecuta migraciones y luego levanta Express. El seed se corre manualmente para no borrar datos creados desde la app en cada deploy.
+
+## Deploy En Railway
+
+La app queda preparada para 3 servicios en Railway:
+
+- PostgreSQL: base de datos remota.
+- API: servicio backend con Dockerfile `apps/api/Dockerfile`.
+- Web: servicio frontend con Dockerfile `apps/web/Dockerfile`.
+
+Variables del servicio API:
+
+```env
+DATABASE_URL=postgresql://postgres:password@host:port/railway
+JWT_SECRET=dev-secret-change-me
+FRONTEND_ORIGIN=https://TU-WEB.up.railway.app
+```
+
+Variables del servicio Web:
+
+```env
+VITE_API_URL=https://TU-API.up.railway.app
+```
+
+Comando de arranque API:
+
+```bash
+npm start
+```
+
+`npm start` en la API ejecuta `prisma migrate deploy`, compila TypeScript y luego arranca `node dist/server.js`. Esto evita el error `Cannot find module dist/server.js` si Railway ejecuta `npm start` directamente.
+
+Comando de arranque Web:
+
+```bash
+npm start
+```
+
+El `Dockerfile` de la API y el `Dockerfile` de la web usan `npm start`. La web compila Vite con `VITE_API_URL` y sirve `dist` con `vite preview` usando el `PORT` de Railway.
+
+Seed inicial en Railway:
+
+```bash
+cd apps/api
+npx prisma db seed
+```
+
+Ejecuta el seed solo una vez o cuando quieras resetear la demo, porque el seed borra y vuelve a crear los datos demo.
 
 ## Usuario Demo
 
@@ -161,6 +217,8 @@ curl -X POST http://localhost:4000/api/issues \
 
 Para mantener la demo simple, el issue nuevo queda asignado al usuario autenticado y el backend busca la reunion por `meetingWeekNumber`.
 
+Un issue representa un tema de liderazgo o ejecucion que debe revisarse en una reunion semanal. Tiene responsable, prioridad, estado, fecha limite, semana de reunion, todos asociados y dias de atraso.
+
 Orden aplicado:
 
 - Primero issues cuyo `status` no es `RESOLVED`.
@@ -175,7 +233,7 @@ Orden aplicado:
 
 La web tiene dos bloques:
 
-- Parte A: login real contra la API, tabla de issues desde SQLite, filtros y creacion simple de issues.
+- Parte A: login real contra la API, tabla de issues desde PostgreSQL, filtros y creacion simple de issues.
 - Parte B: `KPIScorecard` con mock data local para demostrar las reglas de KPI.
 
 El frontend renderiza:
@@ -192,6 +250,12 @@ Responsable | Unidad | KPI | Meta | S-4 | S-3 | S-2 | S-1 | S-actual | % Cumplim
 
 Reglas implementadas:
 
+- Cada fila es un KPI distinto.
+- `Responsable` es el owner del KPI.
+- `Unidad` es el area del KPI.
+- `Meta` es la meta semanal calculada desde la meta anual.
+- `S-4`, `S-3`, `S-2`, `S-1` y `S-actual` son semanas relativas a la semana seleccionada.
+- Si `selectedWeek` es `27`, entonces `S-4` es semana `23`, `S-3` es `24`, `S-2` es `25`, `S-1` es `26` y `S-actual` es `27`.
 - Semanas visibles: `selectedWeek - 4` hasta `selectedWeek`.
 - Celda gris con `Sin dato` si falta valor.
 - Celda verde si cumple meta semanal.
@@ -220,5 +284,6 @@ El archivo `database.sql` incluye:
 npm run build:api
 npm run build:web
 npm run db:migrate
+npm run db:deploy
 npm run db:seed
 ```

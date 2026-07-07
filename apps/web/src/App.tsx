@@ -24,6 +24,7 @@ export default function App() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const openIssues = issues.filter((issue) => issue.status !== 'RESOLVED').length;
   const delayedIssues = issues.filter((issue) => issue.days_delayed > 0).length;
@@ -35,6 +36,7 @@ export default function App() {
 
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       const data = await getIssues(authToken, nextFilters);
@@ -50,11 +52,13 @@ export default function App() {
     event.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       const session = await login(email, password);
       setToken(session.token);
       setUser(session.user);
+      setSuccessMessage('Sesion iniciada correctamente.');
       await loadIssues(session.token, filters);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
@@ -72,12 +76,15 @@ export default function App() {
     event.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       await createIssue(token, newIssue);
       setShowIssueModal(false);
       setNewIssue({ title: '', description: '', priority: 'MEDIUM', dueDate: '2026-07-15', meetingWeekNumber: 27 });
       await loadIssues(token, filters);
+      setSuccessMessage('Issue creado correctamente.');
+      window.setTimeout(() => setSuccessMessage(''), 3500);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Error inesperado');
     } finally {
@@ -107,6 +114,8 @@ export default function App() {
                   setToken('');
                   setUser(null);
                   setIssues([]);
+                  setSuccessMessage('');
+                  setError('');
                 }}
               >
                 Cerrar sesion
@@ -118,11 +127,11 @@ export default function App() {
 
       <main className="app-shell">
       <header className="hero">
-        <div>
-          <p className="eyebrow">Leadership operations</p>
-          <h1>A10 Leadership Overview</h1>
-          <p>Weekly leadership issues and KPI scorecard.</p>
-        </div>
+          <div>
+            <p className="eyebrow">Leadership operations</p>
+            <h1>A10 Leadership Overview</h1>
+            <p>Weekly leadership issues and KPI scorecard.</p>
+          </div>
         {token && <button onClick={() => setShowIssueModal(true)}>Nuevo issue</button>}
       </header>
 
@@ -152,10 +161,12 @@ export default function App() {
             <button
               className="secondary"
               onClick={() => {
-                setToken('');
-                setUser(null);
-                setIssues([]);
-              }}
+                  setToken('');
+                  setUser(null);
+                  setIssues([]);
+                  setSuccessMessage('');
+                  setError('');
+                }}
             >
               Salir
             </button>
@@ -163,6 +174,7 @@ export default function App() {
         )}
 
         {error && <p className="error-message">{error}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
       </section>
 
       {token && (

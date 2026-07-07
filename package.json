@@ -11,6 +11,7 @@
     "build:api": "npm run build -w apps/api",
     "build:web": "npm run build -w apps/web",
     "db:migrate": "npm run db:migrate -w apps/api",
+    "db:deploy": "npm run db:deploy -w apps/api",
     "db:seed": "npm run db:seed -w apps/api"
   }
 }

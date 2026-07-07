@@ -14,4 +14,4 @@ WORKDIR /app/apps/web
 
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
